@@ -8,6 +8,7 @@ import {
   jobsNormalizedFixture,
   skillGapsFixture
 } from "@/src/services/fixtures/mock-data";
+import { getJobDetailUrl } from "@/src/services/jobs/get-job-detail-url";
 import type {
   CandidateDocument,
   DailyFeedItem,
@@ -72,6 +73,7 @@ type PythonScoredJob = {
     description_text: string;
     published_at: string;
     skills_detected: string[];
+    detail_url?: string | null;
   };
   gaps: PythonSkillGap[];
 };
@@ -154,6 +156,7 @@ function mapNormalizedJob(job: PythonScoredJob["job"], normalizedAt: string): No
   return {
     id: job.id,
     rawJobId: `raw-${job.source_job_id.toLowerCase()}`,
+    sourceJobId: job.source_job_id,
     canonicalJobKey: job.canonical_job_key,
     source: job.source,
     title: job.title,
@@ -165,7 +168,12 @@ function mapNormalizedJob(job: PythonScoredJob["job"], normalizedAt: string): No
     descriptionText: job.description_text,
     skillsDetected: job.skills_detected,
     publishedAt: job.published_at,
-    normalizedAt
+    normalizedAt,
+    detailUrl: getJobDetailUrl({
+      source: job.source,
+      sourceJobId: job.source_job_id,
+      detailUrl: job.detail_url
+    })
   };
 }
 

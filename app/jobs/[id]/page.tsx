@@ -28,6 +28,16 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
         <p>
           {job.companyName} - {job.locationText} - {job.contractType} - {job.remoteMode}
         </p>
+        {job.detailUrl ? (
+          <p>
+            Adresse de l'annonce :{" "}
+            <a className="link-inline" href={job.detailUrl} rel="noreferrer" target="_blank">
+              {job.detailUrl}
+            </a>
+          </p>
+        ) : (
+          <p className="muted">Adresse de l'annonce indisponible pour ce snapshot.</p>
+        )}
         <div className="pill-row">
           <span className="pill">Published {job.publishedAt}</span>
           <span className="pill">Seniority {job.seniorityText}</span>

@@ -24,6 +24,7 @@ export type RawJobRecord = {
 export type NormalizedJob = {
   id: string;
   rawJobId: string;
+  sourceJobId: string;
   canonicalJobKey: string;
   source: JobSource;
   title: string;
@@ -36,6 +37,7 @@ export type NormalizedJob = {
   skillsDetected: string[];
   publishedAt: string;
   normalizedAt: string;
+  detailUrl?: string;
 };
 
 export type CandidateProfile = {

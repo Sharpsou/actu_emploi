@@ -33,6 +33,7 @@ export const jobsNormalizedFixture: NormalizedJob[] = [
   {
     id: "job-001",
     rawJobId: "raw-ft-001",
+    sourceJobId: "FT-44711",
     canonicalJobKey: "data-analyst-nantes-bi",
     source: "France Travail",
     title: "Data Analyst",
@@ -50,6 +51,7 @@ export const jobsNormalizedFixture: NormalizedJob[] = [
   {
     id: "job-002",
     rawJobId: "raw-jo-001",
+    sourceJobId: "JBL-982",
     canonicalJobKey: "analytics-engineer-remote-dbt",
     source: "Jooble",
     title: "Analytics Engineer",
