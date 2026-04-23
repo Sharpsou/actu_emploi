@@ -97,7 +97,9 @@ En local :
 
 - execution manuelle via script ou commande npm
 - relance possible aussi depuis l'interface web via `POST /api/run/daily-pipeline`
+- relance possible aussi depuis l'interface web via `POST /api/run/offers-refresh`
 - l'accueil du web peut relancer le pipeline automatiquement au chargement pour afficher un etat frais sans commande terminal supplementaire
+- les runs longs locaux peuvent etre suivis via des statuts de taches stockes dans `data/runtime/tasks/`
 
 En production :
 
@@ -431,6 +433,32 @@ Important :
 - cet endpoint peut rester desactive en production publique
 - en local, il remplace le cron pendant le developpement
 
+### `POST /api/run/offers-refresh`
+
+But :
+
+- lancer un rafraichissement asynchrone des offres depuis l'accueil sans bloquer la requete web
+
+Reponse :
+
+- `202 Accepted` avec un `taskId`
+
+Implementation locale actuelle :
+
+- la route cree une tache locale dans `data/runtime/tasks/`
+- elle lance ensuite un script Python detache qui met a jour le statut et reecrit le snapshot runtime
+
+### `GET /api/tasks/:id`
+
+But :
+
+- suivre l'etat d'une tache locale de pipeline
+
+Reponse :
+
+- statut `queued`, `running`, `completed` ou `failed`
+- etape courante, logs et resultat resume si disponible
+
 ## 8. Algorithme de scoring V1
 
 Le scoring reste regle par regle et explicable.
@@ -545,6 +573,7 @@ Etat local actuel :
 Contenu :
 
 - en-tete avec date du jour
+- bouton de bascule `theme clair / theme sombre` memorise localement
 - filtres simples : role, score mini, type de carte, source
 - liste de cartes ordonnee
 

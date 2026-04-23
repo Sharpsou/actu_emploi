@@ -18,4 +18,5 @@ src/data/runtime/
 .agents/skills/*/agents/
 docs/status.md
 docs/skills-projet.md
+docs/guide-reprise-projet.md
 .agents/skills/web-app-mvp/SKILL.md

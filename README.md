@@ -185,8 +185,8 @@ Notes techniques utiles :
 - le connecteur Jooble public est desactive par defaut car l'acces HTML retourne frequemment `403 Forbidden`
 - Jooble ne doit etre reactive que via une voie officielle stable, idealement leur API avec cle
 - ces connecteurs publics sont volontairement limites en volume et en cadence pour rester prudents
-- la recherche France Travail part par defaut sur `France` (`99100`) pour eviter les faux negatifs lies a une ville trop restrictive
-- pour des recherches locales plus fiables, le projet sait maintenant utiliser des codes de commune `France Travail`, notamment `Nantes = 44109` et `Saint-Nazaire = 44184`
+- la configuration d'exemple prepare maintenant un fallback local sur `Nantes` (`44109`)
+- pour des recherches locales plus fiables, le projet sait maintenant utiliser des codes de commune `France Travail`, notamment `Nantes = 44109` et `Saint-Nazaire = 44184`, et il priorise ces zones via le profil runtime
 - les appels externes utilisent un cache disque local pour eviter de repeter inutilement les memes requetes
 - ils ont un plafond strict de requetes par source et par run, en plus d'un delai entre deux appels reseau
 - ils sont plus fragiles que des APIs officielles et peuvent casser si le HTML ou le balisage schema.org change

@@ -58,9 +58,9 @@
 La meilleure suite a court terme est maintenant de fiabiliser la boucle locale deja en place :
 
 - auditer les offres France Travail retenues sur `Nantes / Saint-Nazaire`
-- verifier les skills detectees et les gaps proposes
-- brancher l'analyse `CV + lettre` dans le pipeline Python
-- relancer ensuite le scoring avec le profil enrichi
+- reimporter `CV + lettre` pour verifier que les `document_skills` enrichissent bien le pipeline Python
+- verifier les skills detectees et les gaps proposes sur le snapshot reel mis a jour
+- etendre la couverture de tests aux routes runtime et aux helpers critiques ajoutes recemment
 - ne passer a `Render` qu'une fois ce flux principal stable
 
 ## Skills utiles par phase
