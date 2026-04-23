@@ -34,6 +34,7 @@ class NormalizedJob:
     description_text: str
     published_at: str
     skills_detected: list[str]
+    detail_url: str | None = None
 
 
 @dataclass(slots=True)

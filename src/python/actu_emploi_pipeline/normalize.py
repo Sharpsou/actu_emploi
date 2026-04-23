@@ -16,6 +16,7 @@ def normalize_job(payload: SourceJobPayload) -> NormalizedJob:
     canonical_job_key = "-".join(
         part for part in [slugify(payload.title), slugify(payload.location_text)] if part
     )
+    detail_url = payload.payload_json.get("detail_url")
 
     return NormalizedJob(
         id=f"{payload.source.lower().replace(' ', '-')}-{payload.source_job_id.lower()}",
@@ -31,4 +32,5 @@ def normalize_job(payload: SourceJobPayload) -> NormalizedJob:
         description_text=payload.description_text,
         published_at=payload.published_at,
         skills_detected=skills,
+        detail_url=detail_url if isinstance(detail_url, str) and detail_url.strip() else None,
     )
