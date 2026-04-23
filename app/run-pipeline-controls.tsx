@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { buildRefreshPageUrl } from "@/src/services/runtime/refresh-page-url";
 
 const AUTO_REFRESH_SESSION_KEY = "actu-emploi-home-auto-refresh-done";
 
@@ -17,6 +18,7 @@ type RuntimeTask = {
   logs: string[];
   error?: string;
   result?: {
+    generated_at?: string;
     stats?: {
       raw_jobs?: number;
       filtered_jobs?: number;
@@ -39,15 +41,16 @@ async function fetchTask(taskId: string) {
 export function RunPipelineControls({ usesFixtures }: RunPipelineControlsProps) {
   const router = useRouter();
   const didAutoRefresh = useRef(false);
+  const handledFinalTaskId = useRef<string | null>(null);
   const [activeTask, setActiveTask] = useState<RuntimeTask | null>(null);
   const [status, setStatus] = useState<string>("Rafraichissement initial des offres au chargement...");
   const [refreshSubmitting, setRefreshSubmitting] = useState(false);
 
-  const refreshPageSnapshot = useCallback(() => {
+  const refreshPageSnapshot = useCallback((refreshToken?: string) => {
     router.refresh();
 
     window.setTimeout(() => {
-      window.location.reload();
+      window.location.replace(buildRefreshPageUrl(window.location.href, refreshToken));
     }, 150);
   }, [router]);
 
@@ -60,22 +63,6 @@ export function RunPipelineControls({ usesFixtures }: RunPipelineControlsProps) 
       try {
         const nextTask = await fetchTask(activeTask.id);
         setActiveTask(nextTask);
-
-        if (nextTask.status === "completed") {
-          const rawJobs = nextTask.result?.stats?.raw_jobs;
-          const filteredJobs = nextTask.result?.stats?.filtered_jobs;
-          setStatus(
-            typeof rawJobs === "number" && typeof filteredJobs === "number"
-              ? `${nextTask.title}: ${rawJobs} offres brutes, ${filteredJobs} retenues.`
-              : `${nextTask.title}: termine.`
-          );
-          setRefreshSubmitting(false);
-          setActiveTask(nextTask);
-          refreshPageSnapshot();
-        } else if (nextTask.status === "failed") {
-          setStatus(nextTask.error ?? `${nextTask.title}: echec.`);
-          setRefreshSubmitting(false);
-        }
       } catch (error) {
         setStatus(error instanceof Error ? error.message : "Impossible de suivre la tache.");
         setRefreshSubmitting(false);
@@ -83,6 +70,41 @@ export function RunPipelineControls({ usesFixtures }: RunPipelineControlsProps) 
     }, 1000);
 
     return () => window.clearInterval(interval);
+  }, [activeTask, refreshPageSnapshot]);
+
+  useEffect(() => {
+    if (!activeTask) {
+      return;
+    }
+
+    if (activeTask.status !== "completed" && activeTask.status !== "failed") {
+      return;
+    }
+
+    if (handledFinalTaskId.current === activeTask.id) {
+      return;
+    }
+
+    handledFinalTaskId.current = activeTask.id;
+
+    if (activeTask.status === "completed") {
+      const rawJobs = activeTask.result?.stats?.raw_jobs;
+      const filteredJobs = activeTask.result?.stats?.filtered_jobs;
+      const generatedAt =
+        typeof activeTask.result?.generated_at === "string" ? activeTask.result.generated_at : undefined;
+
+      setStatus(
+        typeof rawJobs === "number" && typeof filteredJobs === "number"
+          ? `${activeTask.title}: ${rawJobs} offres brutes, ${filteredJobs} retenues.`
+          : `${activeTask.title}: termine.`
+      );
+      setRefreshSubmitting(false);
+      refreshPageSnapshot(generatedAt);
+      return;
+    }
+
+    setStatus(activeTask.error ?? `${activeTask.title}: echec.`);
+    setRefreshSubmitting(false);
   }, [activeTask, refreshPageSnapshot]);
 
   const startTask = useCallback(async () => {
@@ -103,6 +125,7 @@ export function RunPipelineControls({ usesFixtures }: RunPipelineControlsProps) 
         throw new Error(payload?.error ?? "La tache n'a pas pu etre lancee.");
       }
 
+      handledFinalTaskId.current = null;
       const task = await fetchTask(payload.taskId);
       setActiveTask(task);
     } catch (error) {

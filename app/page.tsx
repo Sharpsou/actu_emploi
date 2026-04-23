@@ -151,21 +151,6 @@ export default function HomePage() {
               <p>Aucun statut de source disponible pour le moment.</p>
             )}
           </article>
-
-          <article className="panel">
-            <h2>Commandes utiles</h2>
-            <ul className="metric-list">
-              <li>
-                <span className="mono">npm.cmd run dev</span>
-              </li>
-              <li>
-                <span className="mono">node scripts/run-python-pipeline.mjs</span>
-              </li>
-              <li>
-                <span className="mono">$env:ACTU_EMPLOI_USE_FIXTURES=&quot;0&quot;</span>
-              </li>
-            </ul>
-          </article>
         </div>
 
         <section className="section-stack">
