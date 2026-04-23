@@ -1,50 +1,49 @@
 # Backlog MVP
 
-## Priorite 1
+## Priorite actuelle
 
-- Initialiser le projet web et API pour `Render Web Service`
-- Ajouter la configuration des sources `France Travail` et `Jooble`
-- Creer le schema `Render Postgres` minimal
-- Configurer le deploiement `100% Render`
-- Implementer la collecte quotidienne
-- Configurer le `Render Cron Job`
-- Stocker les offres brutes
-- Normaliser les offres
-- Dedoublonner les annonces
+- confirmer que `Rafraichir les offres` recharge bien l'accueil et les stats sans reload manuel
+- reimporter `CV + lettre` depuis l'ecran profil
+- relancer un run `France Travail` reel complet
+- verifier que `documents`, `document_skills`, competences communes, competences manquantes et gaps sont bien reinjectes dans le snapshot runtime
+- fiabiliser la lecture du dernier snapshot jusque dans l'UI detail et le feed
+- etendre les tests `Vitest` autour des routes runtime, du detail d'offre, du refresh et des helpers critiques
 
-## Priorite 2
+## Priorite moteur
 
-- Importer le CV
-- Importer la lettre de motivation
-- Extraire un profil candidat structure
-- Definir un catalogue initial de competences data
-- Construire le scoring d'offre
-- Afficher les meilleures offres
-- Consolider le ciblage `Nantes / Saint-Nazaire` avec preference teletravail ou hybride
+- consolider le catalogue de competences data a partir d'un echantillon plus large d'offres reelles
+- mieux dedoublonner les annonces proches ou quasi identiques
+- affiner le scoring explicable et les penalties metier sur offres reelles
+- mieux distinguer `competence commune`, `competence manquante`, `signal faible` et `zone d'incertitude`
+- garder une baseline heuristique simple, rapide et explicable
+- preparer une seconde passe `LLM` controlee pour depasser le plafond heuristique sur les equivalences implicites et les preuves indirectes
+- definir les garde-fous de cette future passe `LLM` : sortie structuree, comparaison a la baseline, score de confiance, auto-verification et fallback propre
 
-## Priorite 3
+## Priorite produit
 
-- Extraire les competences manquantes
-- Classer chaque manque en `theorique`, `pratique`, `outil`
-- Generer une reponse type selon la categorie
-- Proposer des idees de POC
-- Suggester des alternatives gratuites aux outils payants
-- Brancher pleinement l'analyse `CV + lettre` dans le pipeline Python
+- enrichir le feed quotidien avec un meilleur mix entre offres, competences, notions et quick wins
+- ameliorer la restitution UI des competences communes et manquantes
+- ajouter un historique journalier lisible
+- ajouter des retours utilisateur sur la pertinence des offres et des analyses
+- commencer un tableau de bord de progression simple
 
-## Priorite 4
+## Priorite deploiement
 
-- Construire le feed quotidien
-- Melanger offres, competences, notions et projets
-- Ajouter un systeme de priorisation
-- Ajouter un historique journalier
-- Connecter le feed au job quotidien Render
+- finaliser le chemin `100% Render` une fois le flux local stabilise
+- brancher proprement `Render Web Service` et `Render Cron Job`
+- verifier la strategie `Postgres` cible par rapport au runtime local actuel
+- clarifier la place de `Jooble` : source secondaire facultative ou retiree du MVP
+- durcir les verifications d'exploitation : healthcheck, logs, reruns et diagnostic simple
 
-## Priorite 5
+## Fondations deja posees
 
-- Ajouter feedback utilisateur sur la pertinence
-- Affiner le scoring
-- Ajouter tableau de bord de progression
-- Ajouter alertes ou automation quotidienne
+Ces chantiers ne sont plus la priorite immediate, car ils existent deja partiellement ou largement dans le repo :
+
+- projet web `Next.js` et routes API
+- source `France Travail` active en run reel
+- schema `Postgres` minimal
+- pipeline Python de normalisation, filtrage, scoring et generation du feed
+- cible `100% Render` deja documentee
 
 ## Questions ouvertes
 
