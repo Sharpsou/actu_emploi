@@ -13,6 +13,39 @@
   --shadow: 0 16px 48px rgba(44, 34, 18, 0.08);
   --radius: 24px;
   --font-sans: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --button-secondary-bg: rgba(16, 47, 51, 0.08);
+  --button-secondary-text: var(--text);
+  --task-log-bg: rgba(255, 255, 255, 0.72);
+  --hero-border: rgba(216, 205, 184, 0.8);
+  --hero-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(244, 235, 220, 0.85));
+  --page-bg:
+    radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 34%),
+    radial-gradient(circle at top right, rgba(180, 83, 9, 0.12), transparent 24%),
+    linear-gradient(180deg, #faf6ee 0%, var(--bg) 100%);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111827;
+  --panel: rgba(17, 24, 39, 0.88);
+  --panel-strong: #172033;
+  --line: rgba(148, 163, 184, 0.22);
+  --text: #e5edf7;
+  --muted: #9fb0c6;
+  --accent: #34d399;
+  --accent-soft: rgba(52, 211, 153, 0.16);
+  --warm: #fbbf24;
+  --danger: #f87171;
+  --shadow: 0 20px 48px rgba(2, 6, 23, 0.42);
+  --button-secondary-bg: rgba(148, 163, 184, 0.14);
+  --button-secondary-text: #eff6ff;
+  --task-log-bg: rgba(15, 23, 42, 0.9);
+  --hero-border: rgba(148, 163, 184, 0.22);
+  --hero-bg: linear-gradient(160deg, rgba(15, 23, 42, 0.92), rgba(17, 24, 39, 0.86));
+  --page-bg:
+    radial-gradient(circle at top left, rgba(52, 211, 153, 0.12), transparent 30%),
+    radial-gradient(circle at top right, rgba(251, 191, 36, 0.1), transparent 22%),
+    linear-gradient(180deg, #0f172a 0%, var(--bg) 100%);
 }
 
 * {
@@ -24,12 +57,10 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  background:
-    radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 34%),
-    radial-gradient(circle at top right, rgba(180, 83, 9, 0.12), transparent 24%),
-    linear-gradient(180deg, #faf6ee 0%, var(--bg) 100%);
+  background: var(--page-bg);
   color: var(--text);
   font-family: var(--font-sans);
+  transition: background-color 160ms ease, color 160ms ease;
 }
 
 body {
@@ -58,10 +89,14 @@ textarea {
   display: grid;
   gap: 16px;
   padding: 28px;
-  border: 1px solid rgba(216, 205, 184, 0.8);
+  border: 1px solid var(--hero-border);
   border-radius: calc(var(--radius) + 4px);
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(244, 235, 220, 0.85));
+  background: var(--hero-bg);
   box-shadow: var(--shadow);
+}
+
+.hero-top-row {
+  align-items: center;
 }
 
 .eyebrow {
@@ -125,7 +160,7 @@ textarea {
 .panel,
 .card,
 .stat-card {
-  border: 1px solid rgba(216, 205, 184, 0.9);
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--panel);
   box-shadow: var(--shadow);
@@ -166,6 +201,11 @@ textarea {
   font-weight: 600;
 }
 
+:root[data-theme="dark"] .pill,
+:root[data-theme="dark"] .tag {
+  color: #d1fae5;
+}
+
 .tag.warm {
   background: #fff0dc;
   color: #8a4b08;
@@ -174,6 +214,15 @@ textarea {
 .tag.danger {
   background: #fde8e5;
   color: var(--danger);
+}
+
+:root[data-theme="dark"] .tag.warm {
+  background: rgba(251, 191, 36, 0.18);
+  color: #fde68a;
+}
+
+:root[data-theme="dark"] .tag.danger {
+  background: rgba(248, 113, 113, 0.18);
 }
 
 .card-header,
@@ -213,6 +262,10 @@ textarea {
   color: white;
 }
 
+:root[data-theme="dark"] .score-badge {
+  background: #052e2b;
+}
+
 .score-badge small {
   display: block;
   font-size: 0.72rem;
@@ -229,7 +282,7 @@ textarea {
 .metric-list li,
 .list-reset li {
   padding: 12px 0;
-  border-top: 1px solid rgba(216, 205, 184, 0.8);
+  border-top: 1px solid var(--line);
 }
 
 .metric-list li:first-child,
@@ -257,9 +310,9 @@ textarea {
 .field textarea {
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid rgba(191, 179, 161, 0.9);
+  border: 1px solid var(--line);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.86);
+  background: var(--panel-strong);
   color: var(--text);
 }
 
@@ -282,8 +335,8 @@ textarea {
 }
 
 .button-secondary {
-  background: rgba(16, 47, 51, 0.08);
-  color: var(--text);
+  background: var(--button-secondary-bg);
+  color: var(--button-secondary-text);
 }
 
 .button-primary:disabled,
@@ -316,13 +369,17 @@ textarea {
 
 .task-log {
   padding: 16px 18px;
-  border: 1px solid rgba(216, 205, 184, 0.9);
+  border: 1px solid var(--line);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--task-log-bg);
 }
 
 .mono {
   font-family: "Cascadia Code", Consolas, monospace;
+}
+
+.theme-toggle {
+  white-space: nowrap;
 }
 
 @media (max-width: 840px) {

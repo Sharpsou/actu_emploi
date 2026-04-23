@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { DailyFeedItem } from "@/src/domain/types";
 import { RunPipelineControls } from "@/app/run-pipeline-controls";
+import { ThemeToggle } from "@/app/theme-toggle";
 import { getDailyFeed } from "@/src/services/feed/get-daily-feed";
 import { getTopJobMatches } from "@/src/services/jobs/get-top-job-matches";
 import { getCandidateProfile } from "@/src/services/profile/get-candidate-profile";
@@ -72,19 +73,21 @@ export default function HomePage() {
   return (
     <main className="page-shell">
       <section className="hero">
-        <span className="eyebrow">Run web + pipeline</span>
-        <h1>Actu Emploi affiche maintenant le resultat reel du pipeline du jour.</h1>
+        <div className="row-between hero-top-row">
+          <span className="eyebrow">Actu Emploi</span>
+          <ThemeToggle />
+        </div>
+        <h1>Actu Emploi - Les annonces et les competences du jour.</h1>
         <p>
-          Le web lit directement la sortie locale du pipeline Python pour montrer
-          les offres retenues, les signaux de competences et les gaps utiles
-          apres tri.
+          Retrouve les offres les plus pertinentes, les competences qui reviennent
+          le plus souvent et les quick wins a travailler pour avancer concretement.
         </p>
         <div className="pill-row">
           <span className="pill">{usesFixtures ? "Mode fixtures" : "Mode France Travail reel"}</span>
           <span className="pill">Run actif {formatDate(today)}</span>
           <span className="pill">{stats.filtered_jobs ?? 0} offres filtrees</span>
           <span className="pill">{feed.length} cartes dans le feed</span>
-          <span className="pill">Analyse heuristique</span>
+          <span className="pill">Matching explicable</span>
         </div>
         <RunPipelineControls usesFixtures={usesFixtures} />
       </section>
