@@ -1,0 +1,162 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+
+const AUTO_REFRESH_SESSION_KEY = "actu-emploi-home-auto-refresh-done";
+
+type RunPipelineControlsProps = {
+  usesFixtures: boolean;
+};
+
+type RuntimeTask = {
+  id: string;
+  title: string;
+  status: "queued" | "running" | "completed" | "failed";
+  currentStep: string;
+  logs: string[];
+  error?: string;
+  result?: {
+    stats?: {
+      raw_jobs?: number;
+      filtered_jobs?: number;
+    };
+  };
+};
+
+async function fetchTask(taskId: string) {
+  const response = await fetch(`/api/tasks/${taskId}`, {
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error("Impossible de lire l'etat de la tache.");
+  }
+
+  return (await response.json()) as RuntimeTask;
+}
+
+export function RunPipelineControls({ usesFixtures }: RunPipelineControlsProps) {
+  const router = useRouter();
+  const didAutoRefresh = useRef(false);
+  const [activeTask, setActiveTask] = useState<RuntimeTask | null>(null);
+  const [status, setStatus] = useState<string>("Rafraichissement initial des offres au chargement...");
+  const [refreshSubmitting, setRefreshSubmitting] = useState(false);
+
+  const refreshPageSnapshot = useCallback(() => {
+    router.refresh();
+
+    window.setTimeout(() => {
+      window.location.reload();
+    }, 150);
+  }, [router]);
+
+  useEffect(() => {
+    if (!activeTask || (activeTask.status !== "queued" && activeTask.status !== "running")) {
+      return;
+    }
+
+    const interval = window.setInterval(async () => {
+      try {
+        const nextTask = await fetchTask(activeTask.id);
+        setActiveTask(nextTask);
+
+        if (nextTask.status === "completed") {
+          const rawJobs = nextTask.result?.stats?.raw_jobs;
+          const filteredJobs = nextTask.result?.stats?.filtered_jobs;
+          setStatus(
+            typeof rawJobs === "number" && typeof filteredJobs === "number"
+              ? `${nextTask.title}: ${rawJobs} offres brutes, ${filteredJobs} retenues.`
+              : `${nextTask.title}: termine.`
+          );
+          setRefreshSubmitting(false);
+          setActiveTask(nextTask);
+          refreshPageSnapshot();
+        } else if (nextTask.status === "failed") {
+          setStatus(nextTask.error ?? `${nextTask.title}: echec.`);
+          setRefreshSubmitting(false);
+        }
+      } catch (error) {
+        setStatus(error instanceof Error ? error.message : "Impossible de suivre la tache.");
+        setRefreshSubmitting(false);
+      }
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [activeTask, refreshPageSnapshot]);
+
+  const startTask = useCallback(async () => {
+    if (refreshSubmitting) {
+      return;
+    }
+
+    setRefreshSubmitting(true);
+    setStatus("Rafraichissement des offres en cours...");
+
+    try {
+      const response = await fetch("/api/run/offers-refresh", {
+        method: "POST"
+      });
+      const payload = (await response.json().catch(() => null)) as { taskId?: string; error?: string } | null;
+
+      if (!response.ok || !payload?.taskId) {
+        throw new Error(payload?.error ?? "La tache n'a pas pu etre lancee.");
+      }
+
+      const task = await fetchTask(payload.taskId);
+      setActiveTask(task);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "La tache n'a pas pu etre lancee.");
+      setRefreshSubmitting(false);
+    }
+  }, [refreshSubmitting]);
+
+  useEffect(() => {
+    if (didAutoRefresh.current) {
+      return;
+    }
+
+    if (typeof window !== "undefined" && window.sessionStorage.getItem(AUTO_REFRESH_SESSION_KEY) === "1") {
+      didAutoRefresh.current = true;
+      return;
+    }
+
+    didAutoRefresh.current = true;
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem(AUTO_REFRESH_SESSION_KEY, "1");
+    }
+    void startTask();
+  }, [startTask]);
+
+  return (
+    <div className="run-controls section-stack">
+      <div className="run-controls-row">
+        <button
+          className="button-primary"
+          disabled={refreshSubmitting}
+          onClick={() => void startTask()}
+          type="button"
+        >
+          {refreshSubmitting ? "Rafraichissement..." : "Rafraichir les offres"}
+        </button>
+      </div>
+      <span className="muted">
+        {usesFixtures
+          ? "Le rafraichissement auto recharge les offres/fixtures et applique seulement le filtrage heuristique."
+          : "Le rafraichissement auto recharge les offres France Travail et applique seulement le filtrage par mots-cles."}
+      </span>
+      <p className="muted">{status}</p>
+      {activeTask ? (
+        <div className="task-log">
+          <strong>{activeTask.title}</strong>
+          <p className="muted">Etat: {activeTask.currentStep}</p>
+          <ul className="metric-list">
+            {activeTask.logs.slice(-6).map((entry, index) => (
+              <li key={`${activeTask.id}-${index}`}>{entry}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  );
+}

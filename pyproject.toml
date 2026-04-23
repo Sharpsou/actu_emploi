@@ -1,0 +1,15 @@
+[project]
+name = "actu-emploi-pipeline"
+version = "0.1.0"
+description = "Python batch tools for job ingestion, skill extraction and scoring."
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src/python"}
+
+[tool.setuptools.packages.find]
+where = ["src/python"]

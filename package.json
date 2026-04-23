@@ -1,0 +1,32 @@
+{
+  "name": "actu-emploi",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "pipeline:run": "node scripts/run-python-pipeline.mjs",
+    "test:ts": "vitest run"
+  },
+  "dependencies": {
+    "next": "15.3.1",
+    "pdfjs-dist": "^5.6.205",
+    "pg": "8.16.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "zod": "3.24.4"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.17",
+    "@types/pg": "8.15.2",
+    "@types/react": "19.1.4",
+    "@types/react-dom": "19.1.5",
+    "eslint": "9.25.1",
+    "eslint-config-next": "15.3.1",
+    "typescript": "5.8.3",
+    "vitest": "^4.1.5"
+  }
+}
