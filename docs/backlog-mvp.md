@@ -3,9 +3,7 @@
 ## Priorite actuelle
 
 - confirmer que `Rafraichir les offres` recharge bien l'accueil et les stats sans reload manuel
-- reimporter `CV + lettre` depuis l'ecran profil
-- relancer un run `France Travail` reel complet
-- verifier que `documents`, `document_skills`, competences communes, competences manquantes et gaps sont bien reinjectes dans le snapshot runtime
+- verifier dans l'UI profil et detail d'offre que le snapshot reel expose clairement les documents candidat, les competences communes, les competences manquantes et les gaps
 - fiabiliser la lecture du dernier snapshot jusque dans l'UI detail et le feed
 - etendre les tests `Vitest` autour des routes runtime, du detail d'offre, du refresh et des helpers critiques
 
@@ -44,6 +42,7 @@ Ces chantiers ne sont plus la priorite immediate, car ils existent deja partiell
 - schema `Postgres` minimal
 - pipeline Python de normalisation, filtrage, scoring et generation du feed
 - cible `100% Render` deja documentee
+- injection des documents candidat dans le snapshot runtime, avec `document_skills` alimentees depuis le CV et la lettre
 
 ## Questions ouvertes
 
@@ -57,8 +56,7 @@ Ces chantiers ne sont plus la priorite immediate, car ils existent deja partiell
 La meilleure suite a court terme est maintenant de fiabiliser la boucle locale deja en place :
 
 - auditer les offres France Travail retenues sur `Nantes / Saint-Nazaire`
-- reimporter `CV + lettre` pour verifier que les `document_skills` enrichissent bien le pipeline Python
-- verifier les skills detectees et les gaps proposes sur le snapshot reel mis a jour
+- verifier dans l'interface que le CV, la lettre, les skills detectees et les gaps proposes sont bien lisibles sur le snapshot reel mis a jour
 - etendre la couverture de tests aux routes runtime et aux helpers critiques ajoutes recemment
 - ne passer a `Render` qu'une fois ce flux principal stable
 

@@ -26,7 +26,7 @@ def _read_json(path: Path, fallback: Any) -> Any:
         return fallback
 
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        return json.loads(path.read_text(encoding="utf-8-sig"))
     except json.JSONDecodeError:
         return fallback
 
