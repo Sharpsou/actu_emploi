@@ -2,6 +2,31 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
+
+_DOTENV_LOADED = False
+
+
+def _load_dotenv() -> None:
+    global _DOTENV_LOADED
+    if _DOTENV_LOADED:
+        return
+    _DOTENV_LOADED = True
+
+    env_path = Path(__file__).resolve().parents[3] / ".env"
+    if not env_path.exists():
+        return
+
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, raw_value = line.split("=", 1)
+        key = key.strip()
+        value = raw_value.strip()
+        if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+            value = value[1:-1]
+        os.environ.setdefault(key, value)
 
 
 @dataclass(slots=True)
@@ -21,9 +46,18 @@ class Settings:
     default_search_location: str
     default_search_location_label: str
     jooble_api_key: str | None
+    lightweight_llm_enabled: bool
+    lightweight_llm_endpoint_url: str
+    lightweight_llm_amd_endpoint_url: str | None
+    lightweight_llm_model: str
+    lightweight_llm_timeout_seconds: int
+    lightweight_llm_device: str
+    lightweight_llm_keep_alive: str
 
 
 def get_settings() -> Settings:
+    _load_dotenv()
+
     return Settings(
         use_fixtures=os.getenv("ACTU_EMPLOI_USE_FIXTURES", "1") == "1",
         enable_france_travail=os.getenv("ENABLE_FRANCE_TRAVAIL", "1") == "1",
@@ -46,4 +80,14 @@ def get_settings() -> Settings:
         default_search_location=os.getenv("DEFAULT_SEARCH_LOCATION", "99100"),
         default_search_location_label=os.getenv("DEFAULT_SEARCH_LOCATION_LABEL", "France"),
         jooble_api_key=os.getenv("JOOBLE_API_KEY"),
+        lightweight_llm_enabled=os.getenv("LIGHTWEIGHT_LLM_ENABLED", "0") == "1",
+        lightweight_llm_endpoint_url=os.getenv(
+            "LIGHTWEIGHT_LLM_ENDPOINT_URL",
+            "http://localhost:11434/v1/chat/completions",
+        ),
+        lightweight_llm_amd_endpoint_url=os.getenv("LIGHTWEIGHT_LLM_AMD_ENDPOINT_URL") or None,
+        lightweight_llm_model=os.getenv("LIGHTWEIGHT_LLM_MODEL", "qwen2.5:3b"),
+        lightweight_llm_timeout_seconds=int(os.getenv("LIGHTWEIGHT_LLM_TIMEOUT_SECONDS", "20")),
+        lightweight_llm_device=os.getenv("LIGHTWEIGHT_LLM_DEVICE", "auto"),
+        lightweight_llm_keep_alive=os.getenv("LIGHTWEIGHT_LLM_KEEP_ALIVE", "30s"),
     )

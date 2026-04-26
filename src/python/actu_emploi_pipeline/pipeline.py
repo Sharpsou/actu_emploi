@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Callable
 
 from actu_emploi_pipeline.analysis.document_analyzer import analyze_candidate_documents
+from actu_emploi_pipeline.analysis.precomputed_matches import build_precomputed_agentic_analysis
 from actu_emploi_pipeline.filters import should_keep_job
 from actu_emploi_pipeline.models import ScoredJob
 from actu_emploi_pipeline.normalize import normalize_job
@@ -19,6 +20,14 @@ from actu_emploi_pipeline.storage import (
     load_candidate_profile,
     save_pipeline_output,
 )
+
+
+def _compact_items(items: list[str], limit: int = 5) -> str:
+    if not items:
+        return "aucune"
+    visible = items[:limit]
+    suffix = f" (+{len(items) - limit})" if len(items) > limit else ""
+    return ", ".join(visible) + suffix
 
 
 def _feed_date() -> str:
@@ -94,6 +103,23 @@ def _build_feed_items(scored_jobs: list[ScoredJob], date: str) -> list[dict[str,
     return items + gap_items + project_items
 
 
+def _save_pipeline_snapshot(payload: dict[str, object]) -> None:
+    save_pipeline_output(
+        {
+            "generated_at": payload["generated_at"],
+            "feed_date": payload["feed_date"],
+            "profile": payload["profile"],
+            "documents": payload["documents"],
+            "stats": payload["stats"],
+            "source_runs": payload["source_runs"],
+            "jobs": payload["jobs"],
+            "feed_items": payload["feed_items"],
+            "partial": payload.get("partial", False),
+            "agentic_matches_refreshed_at": payload.get("agentic_matches_refreshed_at"),
+        }
+    )
+
+
 def _build_connectors() -> tuple[list[object], list[dict[str, object]]]:
     settings = get_settings()
     connectors: list[object] = []
@@ -129,6 +155,13 @@ def run_pipeline(progress_callback: Callable[[str], None] | None = None) -> dict
     if progress_callback:
         progress_callback("Analyse des documents candidat...")
     documents = analyze_candidate_documents(load_candidate_documents())
+    if progress_callback:
+        for document in documents:
+            skills = document.parsed_json.get("detected_skills")
+            detected_skills = [item for item in skills if isinstance(item, str)] if isinstance(skills, list) else []
+            progress_callback(
+                f"cv-skill-extractor: {document.source_filename} -> {_compact_items(detected_skills)}."
+            )
     profile = build_candidate_profile(stored_profile, documents)
     connectors, source_runs = _build_connectors()
     raw_jobs = []
@@ -156,12 +189,16 @@ def run_pipeline(progress_callback: Callable[[str], None] | None = None) -> dict
 
     normalized = []
     if progress_callback:
-        progress_callback("Analyse heuristique des offres par mots-cles...")
+        progress_callback("Analyse agentique des offres...")
     total_jobs = len(raw_jobs)
     for index, job in enumerate(raw_jobs, start=1):
-        normalized.append(normalize_job(job))
+        normalized_job = normalize_job(job)
+        normalized.append(normalized_job)
         if progress_callback and total_jobs > 0:
-            progress_callback(f"Offres traitees: {index}/{total_jobs}")
+            progress_callback(
+                f"job-requirement-extractor: {index}/{total_jobs} {normalized_job.title} -> "
+                f"{_compact_items(normalized_job.skills_detected)}."
+            )
 
     if progress_callback:
         progress_callback("Filtrage et scoring des offres...")
@@ -171,10 +208,11 @@ def run_pipeline(progress_callback: Callable[[str], None] | None = None) -> dict
     generated_at = datetime.now(timezone.utc).isoformat()
     feed_date = _feed_date()
     if progress_callback:
-        progress_callback("Generation du feed...")
+        progress_callback("Preconfrontation agentique CV/offres...")
     feed_items = _build_feed_items(scored, feed_date)
+    job_payloads = [asdict(scored_job) for scored_job in scored]
 
-    payload = {
+    payload: dict[str, object] = {
         "generated_at": generated_at,
         "feed_date": feed_date,
         "profile": asdict(profile),
@@ -186,19 +224,28 @@ def run_pipeline(progress_callback: Callable[[str], None] | None = None) -> dict
             "scored_jobs": len(scored),
         },
         "source_runs": source_runs,
-        "jobs": [asdict(item) for item in scored],
+        "jobs": job_payloads,
         "feed_items": feed_items,
+        "partial": True,
+        "agentic_matches_refreshed_at": None,
     }
-    save_pipeline_output(
-        {
-            "generated_at": payload["generated_at"],
-            "feed_date": payload["feed_date"],
-            "profile": payload["profile"],
-            "documents": payload["documents"],
-            "stats": payload["stats"],
-            "source_runs": payload["source_runs"],
-            "jobs": payload["jobs"],
-            "feed_items": payload["feed_items"],
-        }
-    )
+    _save_pipeline_snapshot(payload)
+
+    for index, scored_job in enumerate(scored, start=1):
+        analysis = build_precomputed_agentic_analysis(documents, scored_job.job)
+        job_payloads[index - 1]["agentic_analysis"] = analysis
+        payload["jobs"] = job_payloads
+        payload["agentic_matches_refreshed_at"] = datetime.now(timezone.utc).isoformat()
+        _save_pipeline_snapshot(payload)
+
+        if progress_callback:
+            progress_callback(
+                f"orchestrateur: preconfrontation {index}/{len(scored)} {scored_job.job.title} "
+                f"-> confiance {analysis.get('confidence_score')} sauvegardee."
+            )
+
+    if progress_callback:
+        progress_callback("Generation du feed...")
+    payload["partial"] = False
+    _save_pipeline_snapshot(payload)
     return payload

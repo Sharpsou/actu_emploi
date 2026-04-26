@@ -1,6 +1,9 @@
 import { getCandidateDocuments } from "@/src/services/profile/get-candidate-documents";
 import { getCandidateProfile } from "@/src/services/profile/get-candidate-profile";
 import { DocumentUploadForm } from "@/app/profile/document-upload-form";
+import { DocumentSkillEditor } from "@/app/profile/document-skill-editor";
+import { ManualSkillForm } from "@/app/profile/manual-skill-form";
+import { PurgeDocumentDataButton } from "@/app/profile/purge-document-data-button";
 
 export const dynamic = "force-dynamic";
 
@@ -66,6 +69,7 @@ export default function ProfilePage() {
                 </span>
               ))}
             </div>
+            <ManualSkillForm />
           </article>
 
           <article className="panel section-stack">
@@ -75,6 +79,14 @@ export default function ProfilePage() {
             </p>
             <p>Formats MVP: CV en PDF/TXT/Markdown, lettre en TXT/Markdown, avec collage manuel en secours.</p>
             <DocumentUploadForm />
+            <div className="task-log section-stack">
+              <strong>Nettoyage des donnees CV/LM</strong>
+              <p className="muted">
+                Supprime les documents importes, les analyses agentiques associees et les scores derives. Les competences
+                ajoutees manuellement au profil sont conservees.
+              </p>
+              <PurgeDocumentDataButton />
+            </div>
           </article>
 
           <article className="panel section-stack">
@@ -122,6 +134,9 @@ export default function ProfilePage() {
                   <p>
                     {document.documentType} - cree le {document.createdAt}
                   </p>
+                  {typeof document.parsedJson.analysis_mode === "string" ? (
+                    <p>Analyse: {document.parsedJson.analysis_mode}</p>
+                  ) : null}
                   {typeof document.parsedJson.extraction_method === "string" ? (
                     <p>Methode d&apos;extraction: {document.parsedJson.extraction_method}</p>
                   ) : null}
@@ -132,15 +147,7 @@ export default function ProfilePage() {
                   ) : null}
                   <p>{summary}</p>
                   {extractionStatus === "invalid" && extractionWarning ? <p>{extractionWarning}</p> : null}
-                  {detectedSkills.length > 0 ? (
-                    <div className="tag-list">
-                      {detectedSkills.map((skill) => (
-                        <span className="tag" key={skill}>
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
+                  <DocumentSkillEditor documentId={document.id} skills={detectedSkills} />
                   {detectedRoles.length > 0 ? (
                     <p>Roles detectes: {detectedRoles.join(", ")}</p>
                   ) : null}

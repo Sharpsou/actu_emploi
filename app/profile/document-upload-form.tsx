@@ -60,13 +60,17 @@ export function DocumentUploadForm() {
       body: formData
     });
 
-    const payload = (await response.json().catch(() => null)) as { error?: string; id?: string } | null;
+    const payload = (await response.json().catch(() => null)) as {
+      error?: string;
+      id?: string;
+      agenticRefresh?: { ok: boolean; jobsRefreshed: number; error?: string };
+    } | null;
 
     if (!response.ok || !payload?.id) {
       throw new Error(payload?.error ?? "Echec de l'import document.");
     }
 
-    return payload.id;
+    return payload;
   }
 
   async function handleUploadOnly() {
@@ -74,8 +78,12 @@ export function DocumentUploadForm() {
     setStatus(null);
 
     try {
-      await uploadDocument();
-      setStatus("Document charge et analyse heuristique appliquee.");
+      const payload = await uploadDocument();
+      setStatus(
+        payload?.agenticRefresh?.ok
+          ? `Document charge, analyse agentique appliquee et ${payload.agenticRefresh.jobsRefreshed} offres reconfrontees.`
+          : "Document charge et analyse agentique appliquee."
+      );
       if (sourceMode === "file") {
         setSelectedFile(null);
       }

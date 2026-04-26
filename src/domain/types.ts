@@ -105,6 +105,83 @@ export type SkillGap = {
   suggestedAction: SuggestedAction;
 };
 
+export type SkillSignal = {
+  skillName: string;
+  source: string;
+  evidenceText: string;
+  confidenceScore: number;
+};
+
+export type AgenticEntityAnalysis = {
+  entityKind: string;
+  summary: string;
+  skills: string[];
+  skillSignals: SkillSignal[];
+  agentTrace: string[];
+};
+
+export type SkillConfrontation = {
+  skillName: string;
+  status: "acquis" | "survol" | "formation" | "mini_projet";
+  effortLevel: "aucun" | "leger" | "court" | "pratique";
+  rationaleText: string;
+  suggestedAction: SuggestedAction;
+};
+
+export type AgenticMatchAnalysis = {
+  profileAnalysis: AgenticEntityAnalysis;
+  jobAnalysis: AgenticEntityAnalysis;
+  confrontations: SkillConfrontation[];
+  miniProjectCandidates: SuggestedAction[];
+};
+
+export type PrecomputedAgenticAnalysis = {
+  status: string;
+  confidenceScore: number;
+  humanReviewRequired: boolean;
+  computedAt: string;
+  analysis: AgenticMatchAnalysis;
+};
+
+export type AgentTask = {
+  id: string;
+  agentName: string;
+  modelName: string;
+  status: string;
+  inputJson: Record<string, unknown>;
+  outputJson: Record<string, unknown>;
+  confidenceScore: number;
+  latencyMs: number;
+  errorText?: string | null;
+};
+
+export type McpCall = {
+  id: string;
+  runId: string;
+  taskId?: string | null;
+  serverName: string;
+  toolName: string;
+  inputJson: Record<string, unknown>;
+  outputJson: Record<string, unknown>;
+  permissionStatus: string;
+  latencyMs: number;
+  createdAt: string;
+};
+
+export type AgentRun = {
+  id: string;
+  jobId: string;
+  userRequest: string;
+  status: string;
+  confidenceScore: number;
+  humanReviewRequired: boolean;
+  createdAt: string;
+  completedAt?: string | null;
+  result: Record<string, unknown>;
+  tasks: AgentTask[];
+  mcpCalls: McpCall[];
+};
+
 export type DailyFeedItem = {
   id: string;
   feedDate: string;
@@ -125,4 +202,5 @@ export type JobDetail = {
   job: NormalizedJob;
   match: JobMatch;
   gaps: SkillGap[];
+  agenticAnalysis?: PrecomputedAgenticAnalysis;
 };

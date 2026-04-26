@@ -304,7 +304,8 @@ function tryExtractTextFromPdfWithPython(buffer: Buffer): PdfTextExtractionResul
           ...process.env,
           PYTHONIOENCODING: "utf-8"
         },
-        encoding: "utf8"
+        encoding: "utf8",
+        windowsHide: true
       });
 
       if (result.error || result.status !== 0) {

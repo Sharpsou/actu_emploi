@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AgenticAnalysisButton } from "@/app/jobs/[id]/agentic-analysis-button";
 import { getJobDetail } from "@/src/services/jobs/get-job-detail";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,7 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
     notFound();
   }
 
-  const { job, match, gaps } = detail;
+  const { job, match, gaps, agenticAnalysis } = detail;
 
   return (
     <main className="page-shell">
@@ -30,19 +31,21 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
         </p>
         {job.detailUrl ? (
           <p>
-            Adresse de l'annonce :{" "}
+            Adresse de l&apos;annonce :{" "}
             <a className="link-inline" href={job.detailUrl} rel="noreferrer" target="_blank">
               {job.detailUrl}
             </a>
           </p>
         ) : (
-          <p className="muted">Adresse de l'annonce indisponible pour ce snapshot.</p>
+          <p className="muted">Adresse de l&apos;annonce indisponible pour ce snapshot.</p>
         )}
         <div className="pill-row">
           <span className="pill">Published {job.publishedAt}</span>
           <span className="pill">Seniority {job.seniorityText}</span>
           <span className="pill">Canonical key {job.canonicalJobKey}</span>
+          {agenticAnalysis ? <span className="pill">Analyse CV/offre {agenticAnalysis.confidenceScore}</span> : null}
         </div>
+        <AgenticAnalysisButton jobId={job.id} />
       </section>
 
       <section className="dashboard-grid">
@@ -148,8 +151,56 @@ export default async function JobDetailPage({ params }: JobDetailPageProps) {
           </article>
         </div>
 
+        <article className="panel section-stack">
+          <div className="row-between">
+            <div>
+              <span className="eyebrow">Analyse agentique CV vs offre</span>
+              <h2>Confrontation deja calculee</h2>
+            </div>
+            {agenticAnalysis ? (
+              <div className="score-badge">
+                <small>confiance</small>
+                {agenticAnalysis.confidenceScore}
+              </div>
+            ) : null}
+          </div>
+          {agenticAnalysis ? (
+            <>
+              <p>
+                Statut {agenticAnalysis.status} - calcule le {agenticAnalysis.computedAt}
+              </p>
+              <div className="cards-grid">
+                {agenticAnalysis.analysis.confrontations.map((confrontation) => (
+                  <div className="card section-stack" key={confrontation.skillName}>
+                    <div className="row-between">
+                      <h3>{confrontation.skillName}</h3>
+                      <span className={confrontation.status === "acquis" ? "tag" : "tag warm"}>
+                        {confrontation.status}
+                      </span>
+                    </div>
+                    <p>{confrontation.rationaleText}</p>
+                    <div className="pill-row">
+                      <span className="pill">effort {confrontation.effortLevel}</span>
+                      <span className="pill">{confrontation.suggestedAction.format}</span>
+                    </div>
+                    <p>Action: {confrontation.suggestedAction.title}</p>
+                    <p>Livrable: {confrontation.suggestedAction.deliverable}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className="muted">
+              Aucune preconfrontation stockee pour cette offre. Relance le pipeline ou utilise le recalcul agentique.
+            </p>
+          )}
+        </article>
+
         <Link className="link-inline" href="/">
           Retour au feed
+        </Link>
+        <Link className="link-inline" href="/agents">
+          Voir les runs agentiques
         </Link>
       </section>
     </main>

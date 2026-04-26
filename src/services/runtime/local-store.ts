@@ -10,12 +10,18 @@ import {
 } from "@/src/services/fixtures/mock-data";
 import { getJobDetailUrl } from "@/src/services/jobs/get-job-detail-url";
 import type {
+  AgentRun,
+  AgenticEntityAnalysis,
+  AgenticMatchAnalysis,
   CandidateDocument,
+  CandidateProfile,
   DailyFeedItem,
   JobMatch,
   JobSource,
   NormalizedJob,
+  PrecomputedAgenticAnalysis,
   SkillGap,
+  SkillSignal,
   SuggestedAction
 } from "@/src/domain/types";
 
@@ -76,6 +82,45 @@ type PythonScoredJob = {
     detail_url?: string | null;
   };
   gaps: PythonSkillGap[];
+  agentic_analysis?: PythonPrecomputedAgenticAnalysis;
+};
+
+type PythonSkillSignal = {
+  skill_name: string;
+  source: string;
+  evidence_text: string;
+  confidence_score: number;
+};
+
+type PythonAgenticEntityAnalysis = {
+  entity_kind: string;
+  summary: string;
+  skills: string[];
+  skill_signals: PythonSkillSignal[];
+  agent_trace: string[];
+};
+
+type PythonSkillConfrontation = {
+  skill_name: string;
+  status: "acquis" | "survol" | "formation" | "mini_projet";
+  effort_level: "aucun" | "leger" | "court" | "pratique";
+  rationale_text: string;
+  suggested_action: PythonSuggestedAction;
+};
+
+type PythonAgenticMatchAnalysis = {
+  profile_analysis: PythonAgenticEntityAnalysis;
+  job_analysis: PythonAgenticEntityAnalysis;
+  confrontations: PythonSkillConfrontation[];
+  mini_project_candidates: PythonSuggestedAction[];
+};
+
+type PythonPrecomputedAgenticAnalysis = {
+  status: string;
+  confidence_score: number;
+  human_review_required: boolean;
+  computed_at: string;
+  analysis: PythonAgenticMatchAnalysis;
 };
 
 type PythonFeedItem = {
@@ -111,10 +156,46 @@ type PythonPipelineOutput = {
   feed_items: PythonFeedItem[];
 };
 
+type PythonAgentRun = {
+  id: string;
+  job_id: string;
+  user_request: string;
+  status: string;
+  confidence_score: number;
+  human_review_required: boolean;
+  created_at: string;
+  completed_at?: string | null;
+  result: Record<string, unknown>;
+  tasks: Array<{
+    id: string;
+    agent_name: string;
+    model_name: string;
+    status: string;
+    input_json: Record<string, unknown>;
+    output_json: Record<string, unknown>;
+    confidence_score: number;
+    latency_ms: number;
+    error_text?: string | null;
+  }>;
+  mcp_calls: Array<{
+    id: string;
+    run_id: string;
+    task_id?: string | null;
+    server_name: string;
+    tool_name: string;
+    input_json: Record<string, unknown>;
+    output_json: Record<string, unknown>;
+    permission_status: string;
+    latency_ms: number;
+    created_at: string;
+  }>;
+};
+
 const runtimeDirPath = path.join(process.cwd(), "data", "runtime");
 const candidateProfilePath = path.join(runtimeDirPath, "candidate-profile.json");
 const candidateDocumentsPath = path.join(runtimeDirPath, "candidate-documents.json");
 const pipelineOutputPath = path.join(runtimeDirPath, "pipeline-output.json");
+const agentRunsDirPath = path.join(runtimeDirPath, "agent-runs");
 
 function ensureRuntimeDir() {
   fs.mkdirSync(runtimeDirPath, { recursive: true });
@@ -232,8 +313,94 @@ function mapFeedItem(item: PythonFeedItem): DailyFeedItem {
   };
 }
 
+function mapSkillSignal(signal: PythonSkillSignal): SkillSignal {
+  return {
+    skillName: signal.skill_name,
+    source: signal.source,
+    evidenceText: signal.evidence_text,
+    confidenceScore: signal.confidence_score
+  };
+}
+
+function mapAgenticEntityAnalysis(analysis: PythonAgenticEntityAnalysis): AgenticEntityAnalysis {
+  return {
+    entityKind: analysis.entity_kind,
+    summary: analysis.summary,
+    skills: analysis.skills,
+    skillSignals: analysis.skill_signals.map(mapSkillSignal),
+    agentTrace: analysis.agent_trace
+  };
+}
+
+function mapAgenticMatchAnalysis(analysis: PythonAgenticMatchAnalysis): AgenticMatchAnalysis {
+  return {
+    profileAnalysis: mapAgenticEntityAnalysis(analysis.profile_analysis),
+    jobAnalysis: mapAgenticEntityAnalysis(analysis.job_analysis),
+    confrontations: analysis.confrontations.map((item) => ({
+      skillName: item.skill_name,
+      status: item.status,
+      effortLevel: item.effort_level,
+      rationaleText: item.rationale_text,
+      suggestedAction: mapSuggestedAction(item.suggested_action)
+    })),
+    miniProjectCandidates: analysis.mini_project_candidates.map(mapSuggestedAction)
+  };
+}
+
+function mapPrecomputedAgenticAnalysis(analysis: PythonPrecomputedAgenticAnalysis): PrecomputedAgenticAnalysis {
+  return {
+    status: analysis.status,
+    confidenceScore: analysis.confidence_score,
+    humanReviewRequired: analysis.human_review_required,
+    computedAt: analysis.computed_at,
+    analysis: mapAgenticMatchAnalysis(analysis.analysis)
+  };
+}
+
+function mapAgentRun(run: PythonAgentRun): AgentRun {
+  return {
+    id: run.id,
+    jobId: run.job_id,
+    userRequest: run.user_request,
+    status: run.status,
+    confidenceScore: run.confidence_score,
+    humanReviewRequired: run.human_review_required,
+    createdAt: run.created_at,
+    completedAt: run.completed_at,
+    result: run.result,
+    tasks: run.tasks.map((task) => ({
+      id: task.id,
+      agentName: task.agent_name,
+      modelName: task.model_name,
+      status: task.status,
+      inputJson: task.input_json,
+      outputJson: task.output_json,
+      confidenceScore: task.confidence_score,
+      latencyMs: task.latency_ms,
+      errorText: task.error_text
+    })),
+    mcpCalls: run.mcp_calls.map((call) => ({
+      id: call.id,
+      runId: call.run_id,
+      taskId: call.task_id,
+      serverName: call.server_name,
+      toolName: call.tool_name,
+      inputJson: call.input_json,
+      outputJson: call.output_json,
+      permissionStatus: call.permission_status,
+      latencyMs: call.latency_ms,
+      createdAt: call.created_at
+    }))
+  };
+}
+
 export function getStoredCandidateProfile() {
   return readJsonFile(candidateProfilePath, candidateProfileFixture);
+}
+
+export function saveStoredCandidateProfile(profile: CandidateProfile) {
+  writeJsonFile(candidateProfilePath, profile);
+  return profile;
 }
 
 export function getStoredCandidateDocuments() {
@@ -245,6 +412,17 @@ export function appendStoredCandidateDocument(document: CandidateDocument) {
   documents.unshift(document);
   writeJsonFile(candidateDocumentsPath, documents);
   return document;
+}
+
+export function saveStoredCandidateDocuments(documents: CandidateDocument[]) {
+  writeJsonFile(candidateDocumentsPath, documents);
+  return documents;
+}
+
+export function clearStoredCandidateDocuments() {
+  const previousCount = getStoredCandidateDocuments().length;
+  writeJsonFile(candidateDocumentsPath, []);
+  return previousCount;
 }
 
 export function getPipelineOutput() {
@@ -267,7 +445,10 @@ export function getPipelineOutput() {
 
 export function getDailyFeedFromStore(date: string) {
   const output = getPipelineOutput();
-  const items = output.feed_items.length > 0 ? output.feed_items.map(mapFeedItem) : dailyFeedFixture;
+  const items =
+    output.feed_items.length > 0 || output.generated_at
+      ? output.feed_items.map(mapFeedItem)
+      : dailyFeedFixture;
 
   return items
     .filter((item) => item.feedDate === date)
@@ -277,7 +458,7 @@ export function getDailyFeedFromStore(date: string) {
 export function getTopJobMatchesFromStore() {
   const output = getPipelineOutput();
 
-  if (output.jobs.length === 0) {
+  if (output.jobs.length === 0 && !output.generated_at) {
     return jobMatchesFixture.map((match) => {
       const job = jobsNormalizedFixture.find((item) => item.id === match.jobId);
       return job ? { job, match } : null;
@@ -293,7 +474,7 @@ export function getTopJobMatchesFromStore() {
 export function getJobDetailFromStore(jobId: string) {
   const output = getPipelineOutput();
 
-  if (output.jobs.length === 0) {
+  if (output.jobs.length === 0 && !output.generated_at) {
     const job = jobsNormalizedFixture.find((item) => item.id === jobId);
     const match = jobMatchesFixture.find((item) => item.jobId === jobId);
 
@@ -317,7 +498,10 @@ export function getJobDetailFromStore(jobId: string) {
   return {
     job: mapNormalizedJob(scoredJob.job, output.generated_at ?? new Date().toISOString()),
     match: mapJobMatch(scoredJob),
-    gaps: scoredJob.gaps.map(mapSkillGap)
+    gaps: scoredJob.gaps.map(mapSkillGap),
+    agenticAnalysis: scoredJob.agentic_analysis
+      ? mapPrecomputedAgenticAnalysis(scoredJob.agentic_analysis)
+      : undefined
   };
 }
 
@@ -331,4 +515,72 @@ export function getPipelineGeneratedAt() {
 
 export function getPipelineSourceRuns() {
   return getPipelineOutput().source_runs;
+}
+
+export function getAgentRunsFromStore() {
+  ensureRuntimeDir();
+
+  if (!fs.existsSync(agentRunsDirPath)) {
+    return [];
+  }
+
+  return fs.readdirSync(agentRunsDirPath)
+    .filter((filename) => filename.endsWith(".json"))
+    .map((filename) => {
+      const filePath = path.join(agentRunsDirPath, filename);
+      return JSON.parse(fs.readFileSync(filePath, "utf8")) as PythonAgentRun;
+    })
+    .map(mapAgentRun)
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+}
+
+export function getAgentRunFromStore(runId: string) {
+  const filePath = path.join(agentRunsDirPath, `${runId}.json`);
+
+  if (!fs.existsSync(filePath)) {
+    return null;
+  }
+
+  return mapAgentRun(JSON.parse(fs.readFileSync(filePath, "utf8")) as PythonAgentRun);
+}
+
+export function clearStoredAgentRuns() {
+  ensureRuntimeDir();
+
+  if (!fs.existsSync(agentRunsDirPath)) {
+    return 0;
+  }
+
+  const filenames = fs.readdirSync(agentRunsDirPath).filter((filename) => filename.endsWith(".json"));
+  for (const filename of filenames) {
+    fs.unlinkSync(path.join(agentRunsDirPath, filename));
+  }
+
+  return filenames.length;
+}
+
+export function clearProfileDerivedPipelineOutput() {
+  const output = getPipelineOutput();
+  const previousJobsCount = output.jobs.length;
+  const previousFeedItemsCount = output.feed_items.length;
+  const now = new Date().toISOString();
+
+  writeJsonFile<PythonPipelineOutput>(pipelineOutputPath, {
+    ...output,
+    generated_at: now,
+    profile: null,
+    documents: [],
+    stats: {
+      ...output.stats,
+      filtered_jobs: 0,
+      scored_jobs: 0
+    },
+    jobs: [],
+    feed_items: []
+  });
+
+  return {
+    previousJobsCount,
+    previousFeedItemsCount
+  };
 }

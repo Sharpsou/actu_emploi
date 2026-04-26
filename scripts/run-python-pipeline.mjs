@@ -58,7 +58,8 @@ for (const executable of getPythonCandidates()) {
       PYTHONIOENCODING: "utf-8"
     },
     encoding: "utf8",
-    stdio: "inherit"
+    stdio: "inherit",
+    windowsHide: true
   });
 
   if (result.error) {

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 
-from actu_emploi_pipeline.analysis.skill_extractor import extract_skills
+from actu_emploi_pipeline.analysis.agentic_match import analyze_job_text_agentically
 from actu_emploi_pipeline.models import NormalizedJob, SourceJobPayload
 
 
@@ -12,7 +12,8 @@ def slugify(value: str) -> str:
 
 
 def normalize_job(payload: SourceJobPayload) -> NormalizedJob:
-    skills = extract_skills(" ".join([payload.title, payload.description_text]))
+    job_analysis = analyze_job_text_agentically(payload.title, payload.description_text)
+    skills = job_analysis.skills
     canonical_job_key = "-".join(
         part for part in [slugify(payload.title), slugify(payload.location_text)] if part
     )

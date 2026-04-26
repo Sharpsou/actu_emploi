@@ -13,6 +13,7 @@ RUNTIME_DIR = PROJECT_ROOT / "data" / "runtime"
 CANDIDATE_PROFILE_PATH = RUNTIME_DIR / "candidate-profile.json"
 CANDIDATE_DOCUMENTS_PATH = RUNTIME_DIR / "candidate-documents.json"
 PIPELINE_OUTPUT_PATH = RUNTIME_DIR / "pipeline-output.json"
+AGENT_RUNS_DIR = RUNTIME_DIR / "agent-runs"
 
 
 def ensure_runtime_dir() -> None:
@@ -94,3 +95,28 @@ def save_candidate_documents(documents: list[CandidateDocument]) -> None:
 
 def save_pipeline_output(payload: dict[str, Any]) -> None:
     _write_json(PIPELINE_OUTPUT_PATH, payload)
+
+
+def load_pipeline_output() -> dict[str, Any]:
+    return _read_json(
+        PIPELINE_OUTPUT_PATH,
+        {
+            "generated_at": None,
+            "feed_date": "",
+            "profile": None,
+            "documents": [],
+            "stats": {},
+            "source_runs": [],
+            "jobs": [],
+            "feed_items": [],
+        },
+    )
+
+
+def save_agent_run(payload: dict[str, Any]) -> None:
+    ensure_runtime_dir()
+    AGENT_RUNS_DIR.mkdir(parents=True, exist_ok=True)
+    run_id = payload.get("id")
+    if not isinstance(run_id, str) or not run_id:
+        raise ValueError("Agent run payload requires a non-empty id.")
+    _write_json(AGENT_RUNS_DIR / f"{run_id}.json", payload)

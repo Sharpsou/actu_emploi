@@ -216,6 +216,48 @@ textarea {
   color: var(--danger);
 }
 
+.editable-tag button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(11, 77, 72, 0.14);
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.editable-tag button:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.document-skill-editor {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.document-skill-add {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.document-skill-add input {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel-strong);
+  color: var(--text);
+}
+
 :root[data-theme="dark"] .tag.warm {
   background: rgba(251, 191, 36, 0.18);
   color: #fde68a;
@@ -372,6 +414,28 @@ textarea {
   border: 1px solid var(--line);
   border-radius: 18px;
   background: var(--task-log-bg);
+}
+
+.analysis-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(6px);
+}
+
+.analysis-modal {
+  width: min(100%, 680px);
+  max-height: min(760px, calc(100vh - 40px));
+  overflow: auto;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-bg);
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
 }
 
 .mono {

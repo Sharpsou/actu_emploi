@@ -1,8 +1,8 @@
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { getPythonCandidates } from "@/src/services/runtime/python-executable";
-import type { RuntimeTask } from "@/src/services/runtime/task-store";
+import { getWindowedPythonCandidates } from "@/src/services/runtime/python-executable";
+import { attachRuntimeTaskProcess, type RuntimeTask } from "@/src/services/runtime/task-store";
 
 function resolveScriptPath(scriptRelativePath: string) {
   return path.join(process.cwd(), scriptRelativePath);
@@ -41,7 +41,7 @@ export function spawnPythonTask(task: RuntimeTask, scriptRelativePath: string, a
     throw new Error(`Python task script missing: ${scriptPath}`);
   }
 
-  const pythonExecutable = getPythonCandidates()[0];
+  const pythonExecutable = getWindowedPythonCandidates()[0];
   if (!pythonExecutable) {
     throw new Error("Aucun executable Python disponible pour lancer la tache.");
   }
@@ -59,5 +59,6 @@ export function spawnPythonTask(task: RuntimeTask, scriptRelativePath: string, a
     windowsHide: true
   });
 
+  attachRuntimeTaskProcess(task.id, child.pid);
   child.unref();
 }

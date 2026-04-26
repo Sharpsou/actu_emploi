@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
@@ -16,6 +17,13 @@ from actu_emploi_pipeline.profile_builder import build_candidate_profile
 
 
 class CandidateDocumentAnalysisTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.env_patcher = patch.dict("os.environ", {"LIGHTWEIGHT_LLM_ENABLED": "0"})
+        self.env_patcher.start()
+
+    def tearDown(self) -> None:
+        self.env_patcher.stop()
+
     def test_enriches_seed_documents_with_detected_signals(self) -> None:
         documents = [
             CandidateDocument(
@@ -34,6 +42,9 @@ class CandidateDocumentAnalysisTest(unittest.TestCase):
         analyzed = analyze_candidate_documents(documents)
 
         self.assertEqual(analyzed[0].parsed_json["extraction_status"], "done")
+        self.assertEqual(analyzed[0].parsed_json["analysis_mode"], "agentic_baseline")
+        self.assertEqual(analyzed[0].parsed_json["analysis_version"], "agentic_pipeline_v2")
+        self.assertEqual(analyzed[0].parsed_json["agent_trace"], ["skill-detector", "profile-signal-controller"])
         self.assertEqual(analyzed[0].parsed_json["detected_roles"], ["Data Analyst"])
         self.assertEqual(analyzed[0].parsed_json["detected_locations"], ["Nantes", "Remote"])
         self.assertEqual(analyzed[0].parsed_json["detected_skills"], ["Dashboarding", "Python", "SQL"])
@@ -68,8 +79,11 @@ class CandidateDocumentAnalysisTest(unittest.TestCase):
 
         enriched = build_candidate_profile(profile, documents)
 
-        self.assertEqual(enriched.document_skills, ["ETL", "Power BI", "Python"])
-        self.assertEqual(enriched.preferred_skills, ["ETL", "Power BI", "Python", "SQL"])
+        self.assertEqual(enriched.document_skills, ["Collaboration", "Communication", "ETL", "Power BI", "Python"])
+        self.assertEqual(
+            enriched.preferred_skills,
+            ["Collaboration", "Communication", "ETL", "Power BI", "Python", "SQL"],
+        )
 
 
 if __name__ == "__main__":

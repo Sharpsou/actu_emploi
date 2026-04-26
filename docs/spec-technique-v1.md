@@ -393,6 +393,7 @@ Reponse :
 But :
 
 - importer CV ou lettre au MVP, soit par texte colle soit par upload fichier simple
+- corriger ensuite les competences detectees quand l'utilisateur identifie un faux positif ou un oubli
 
 Payload :
 
@@ -421,6 +422,20 @@ Transport accepte :
 But :
 
 - lire le profil structure courant
+
+### `POST /api/profile`
+
+But :
+
+- ajouter une competence manuelle au profil cible
+
+### `PATCH /api/profile/documents/skills`
+
+But :
+
+- ajouter ou retirer une competence detectee sur un document candidat
+- conserver la correction dans `manual_skill_overrides`
+- mettre a jour les signaux exploites par le profil consolide
 
 ### `POST /api/run/daily-pipeline`
 
@@ -542,6 +557,12 @@ Chaque gap doit produire :
 - un niveau d'importance
 - une action recommandee
 
+Etat local actuel :
+
+- les soft skills explicites sont classees comme gaps pratiques
+- les competences outil ou pratique connues peuvent produire un mini-projet dedie plutot qu'une consigne generique
+- les suggestions privilegient des livrables verifiables : repo, README, dashboard, notebook, rapport qualite, note decisionnelle ou cadrage projet
+
 ## 10. Generation du feed quotidien
 
 Le feed du jour doit contenir un melange :
@@ -599,7 +620,10 @@ Contenu :
 
 Etat local actuel :
 
-- les documents sont aujourd'hui resumes et qualifies via extraction locale et heuristiques explicables
+- les documents sont aujourd'hui resumes et qualifies via une analyse agentique baseline locale, deterministe et explicable
+- les offres sont analysees avec la meme logique agentique baseline au moment de la normalisation avant scoring
+- les competences detectees par document sont editables depuis l'interface profil
+- les analyses longues exposent une popup de progression avec les etapes et logs intra-tache
 
 ## 12. Maquettes textuelles
 

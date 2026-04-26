@@ -17,7 +17,8 @@ export function runPythonPipeline() {
     const result = spawnSync(executable, [scriptPath], {
       cwd: projectRoot,
       env: process.env,
-      encoding: "utf8"
+      encoding: "utf8",
+      windowsHide: true
     });
 
     if (result.error) {

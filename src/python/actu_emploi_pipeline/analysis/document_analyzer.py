@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import unicodedata
 
-from actu_emploi_pipeline.analysis.skill_extractor import extract_skills
+from dataclasses import asdict
+
+from actu_emploi_pipeline.analysis.agentic_match import analyze_profile_text_agentically
 from actu_emploi_pipeline.analysis.document_quality import evaluate_document_text_quality
 from actu_emploi_pipeline.models import CandidateDocument
 
@@ -20,6 +22,8 @@ LOCATION_ALIASES: dict[str, list[str]] = {
     "Loire-Atlantique": ["loire-atlantique", "loire atlantique"],
     "Remote": ["remote", "teletravail", "télétravail", "hybride", "hybrid"],
 }
+
+ANALYSIS_VERSION = "agentic_pipeline_v2"
 
 
 def normalize_text(value: str) -> str:
@@ -79,7 +83,12 @@ def _analyze_candidate_document(document: CandidateDocument, force_reanalyze: bo
             created_at=document.created_at,
         )
 
-    if document.parsed_json.get("extraction_status") == "done" and not force_reanalyze:
+    if (
+        document.parsed_json.get("extraction_status") == "done"
+        and document.parsed_json.get("analysis_mode") == "agentic_baseline"
+        and document.parsed_json.get("analysis_version") == ANALYSIS_VERSION
+        and not force_reanalyze
+    ):
         return CandidateDocument(
             id=document.id,
             document_type=document.document_type,
@@ -90,7 +99,8 @@ def _analyze_candidate_document(document: CandidateDocument, force_reanalyze: bo
         )
 
     normalized = normalize_text(document.content_text)
-    detected_skills = extract_skills(document.content_text)
+    agentic_analysis = analyze_profile_text_agentically(document.content_text)
+    detected_skills = agentic_analysis.skills
     detected_roles = detect_aliases(document.content_text, ROLE_ALIASES)
     detected_locations = detect_aliases(document.content_text, LOCATION_ALIASES)
     mentions_remote = any(token in normalized for token in ["teletravail", "remote", "hybride", "hybrid"])
@@ -98,8 +108,12 @@ def _analyze_candidate_document(document: CandidateDocument, force_reanalyze: bo
     parsed_json = {
         **base_parsed_json,
         "extraction_status": "done",
+        "analysis_mode": "agentic_baseline",
+        "analysis_version": ANALYSIS_VERSION,
         "summary": build_summary(document.content_text),
         "detected_skills": detected_skills,
+        "skill_signals": [asdict(signal) for signal in agentic_analysis.skill_signals],
+        "agent_trace": agentic_analysis.agent_trace,
         "detected_roles": detected_roles,
         "detected_locations": detected_locations,
         "mentions_teletravail": mentions_remote,

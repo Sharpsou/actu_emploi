@@ -6,6 +6,7 @@
 - verifier dans l'UI profil et detail d'offre que le snapshot reel expose clairement les documents candidat, les competences communes, les competences manquantes et les gaps
 - fiabiliser la lecture du dernier snapshot jusque dans l'UI detail et le feed
 - etendre les tests `Vitest` autour des routes runtime, du detail d'offre, du refresh et des helpers critiques
+- verifier sur un vrai CV que les corrections de competences detectees ameliorent bien le scoring apres relance du pipeline
 
 ## Priorite moteur
 
@@ -13,8 +14,10 @@
 - mieux dedoublonner les annonces proches ou quasi identiques
 - affiner le scoring explicable et les penalties metier sur offres reelles
 - mieux distinguer `competence commune`, `competence manquante`, `signal faible` et `zone d'incertitude`
-- garder une baseline heuristique simple, rapide et explicable
-- preparer une seconde passe `LLM` controlee pour depasser le plafond heuristique sur les equivalences implicites et les preuves indirectes
+- continuer a enrichir les soft skills detectees avec des preuves textuelles fiables
+- enrichir les mini-projets proposes a partir d'offres reelles et de livrables portfolio utiles
+- garder une baseline agentique locale simple, rapide et explicable
+- preparer le remplacement progressif de certains mini-agents par de petits `LLM` controles pour depasser le plafond des equivalences implicites et des preuves indirectes
 - definir les garde-fous de cette future passe `LLM` : sortie structuree, comparaison a la baseline, score de confiance, auto-verification et fallback propre
 
 ## Priorite produit
@@ -43,6 +46,9 @@ Ces chantiers ne sont plus la priorite immediate, car ils existent deja partiell
 - pipeline Python de normalisation, filtrage, scoring et generation du feed
 - cible `100% Render` deja documentee
 - injection des documents candidat dans le snapshot runtime, avec `document_skills` alimentees depuis le CV et la lettre
+- correction manuelle des competences detectees par document candidat
+- popup de progression pour les analyses longues
+- petit LLM local optionnel avec baseline deterministe et commandes de nettoyage runtime
 
 ## Questions ouvertes
 

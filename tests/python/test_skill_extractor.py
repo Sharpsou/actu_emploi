@@ -30,6 +30,17 @@ class SkillExtractorTest(unittest.TestCase):
 
         self.assertEqual(extract_skills(text), ["Dashboarding", "ETL", "Modelisation"])
 
+    def test_extracts_common_cv_data_stack_signals(self) -> None:
+        text = "DATA SCIENCE R, PYTHON, SQL, SAS, Keras, Hadoop, Azure, Streamlit, Docker et API REST."
+
+        self.assertEqual(
+            extract_skills(text),
+            ["API", "Azure", "Deep Learning", "Docker", "Hadoop", "Python", "R", "SAS", "SQL", "Streamlit"],
+        )
+
+    def test_short_aliases_do_not_match_inside_words(self) -> None:
+        self.assertEqual(extract_skills("Application Streamlit pour data internes."), ["Streamlit"])
+
 
 if __name__ == "__main__":
     unittest.main()

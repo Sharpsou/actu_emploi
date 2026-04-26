@@ -34,6 +34,7 @@ describe("addCandidateDocument", () => {
 
     analyzeCandidateDocument.mockReturnValue({
       extraction_status: "done",
+      analysis_mode: "agentic_baseline",
       summary: "resume",
       detected_skills: ["SQL"]
     });
@@ -53,7 +54,11 @@ describe("addCandidateDocument", () => {
       throw new Error("Expected valid result");
     }
 
-    expect(analyzeCandidateDocument).toHaveBeenCalledWith("SQL et Python");
+    expect(analyzeCandidateDocument).toHaveBeenCalledWith("SQL et Python", {
+      documentType: "cv",
+      sourceFilename: "cv.txt",
+      extractionMethod: "manual_text"
+    });
     expect(appendStoredCandidateDocument).toHaveBeenCalledTimes(1);
     expect(result.value).toMatchObject({
       id: "doc-1776939300000",
@@ -63,6 +68,7 @@ describe("addCandidateDocument", () => {
     });
     expect(result.value.parsedJson).toMatchObject({
       extraction_status: "done",
+      analysis_mode: "agentic_baseline",
       import_mode: "text",
       extraction_method: "manual_text",
       content_length: 13

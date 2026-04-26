@@ -5,7 +5,7 @@ export type RuntimeTaskStatus = "queued" | "running" | "completed" | "failed";
 
 export type RuntimeTask = {
   id: string;
-  kind: "offers_refresh";
+  kind: "offers_refresh" | "agentic_analysis";
   title: string;
   status: RuntimeTaskStatus;
   currentStep: string;
@@ -13,6 +13,7 @@ export type RuntimeTask = {
   createdAt: string;
   startedAt?: string;
   finishedAt?: string;
+  processPid?: number;
   result?: Record<string, unknown>;
   error?: string;
   metadata?: Record<string, unknown>;
@@ -58,4 +59,17 @@ export function readRuntimeTask(taskId: string) {
   } catch {
     return null;
   }
+}
+
+export function attachRuntimeTaskProcess(taskId: string, processPid: number | undefined) {
+  if (!processPid) {
+    return;
+  }
+
+  const task = readRuntimeTask(taskId);
+  if (!task) {
+    return;
+  }
+
+  fs.writeFileSync(taskPath(task.id), `${JSON.stringify({ ...task, processPid }, null, 2)}\n`, "utf8");
 }

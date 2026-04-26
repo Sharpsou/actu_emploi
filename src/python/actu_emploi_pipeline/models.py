@@ -72,6 +72,40 @@ class SuggestedAction:
 
 
 @dataclass(slots=True)
+class SkillSignal:
+    skill_name: str
+    source: str
+    evidence_text: str
+    confidence_score: int
+
+
+@dataclass(slots=True)
+class AgenticEntityAnalysis:
+    entity_kind: str
+    summary: str
+    skills: list[str]
+    skill_signals: list[SkillSignal]
+    agent_trace: list[str]
+
+
+@dataclass(slots=True)
+class SkillConfrontation:
+    skill_name: str
+    status: str
+    effort_level: str
+    rationale_text: str
+    suggested_action: SuggestedAction
+
+
+@dataclass(slots=True)
+class AgenticMatchAnalysis:
+    profile_analysis: AgenticEntityAnalysis
+    job_analysis: AgenticEntityAnalysis
+    confrontations: list[SkillConfrontation]
+    mini_project_candidates: list[SuggestedAction]
+
+
+@dataclass(slots=True)
 class SkillGap:
     id: str
     job_match_id: str

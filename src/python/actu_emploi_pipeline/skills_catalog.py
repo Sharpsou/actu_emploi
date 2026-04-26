@@ -1,10 +1,30 @@
 SKILL_ALIASES: dict[str, set[str]] = {
+    "API": {"api", "apis", "rest api", "api rest"},
+    "Azure": {"azure", "microsoft azure"},
+    "Deep Learning": {"deep learning", "keras", "tensorflow", "reseau de neurones", "neural network"},
+    "Docker": {"docker", "dockerise", "dockerisee", "conteneurisation", "containerisation"},
+    "Excel": {"excel", "microsoft excel", "tableur"},
+    "FastAPI": {"fastapi", "fast api"},
+    "Hadoop": {"hadoop", "hdfs"},
+    "R": {"r", "langage r", "r studio", "rstudio"},
+    "SAS": {"sas", "sas enterprise guide"},
+    "Streamlit": {"streamlit"},
     "SQL": {"sql", "postgresql", "mysql", "requete"},
-    "Python": {"python", "pandas", "pyspark"},
+    "Python": {"python", "pandas", "pyspark", "scikit-learn", "scikit learn", "numpy", "matplotlib", "seaborn"},
     "Power BI": {"power bi", "powerbi"},
     "Airflow": {"airflow", "apache airflow"},
     "dbt": {"dbt", "data build tool"},
-    "ETL": {"etl", "elt", "pipeline", "data engineering", "preparer la donnee", "preparation de donnees"},
+    "ETL": {
+        "etl",
+        "elt",
+        "pipeline",
+        "pipelines",
+        "pipeline de donnees",
+        "pipelines de donnees",
+        "data engineering",
+        "preparer la donnee",
+        "preparation de donnees",
+    },
     "Modelisation": {
         "modelisation",
         "modelisation dimensionnelle",
@@ -18,7 +38,40 @@ SKILL_ALIASES: dict[str, set[str]] = {
     "Snowflake": {"snowflake"},
     "Databricks": {"databricks"},
     "DuckDB": {"duckdb"},
+    "Communication": {"communication", "communiquer", "presentation", "presenter", "restitution", "restituer"},
+    "Vulgarisation": {"vulgarisation", "vulgariser", "pedagogie", "expliquer simplement", "documentation"},
+    "Collaboration": {"collaboration", "collaborer", "travail en equipe", "equipes metier", "stakeholders"},
+    "Autonomie": {"autonomie", "autonome", "initiative", "proactif", "proactive"},
+    "Rigueur": {"rigueur", "rigoureux", "qualite de donnees", "controle qualite", "fiabilisation"},
+    "Problem solving": {"problem solving", "resolution de probleme", "analyse de probleme", "troubleshooting"},
+    "Gestion de projet": {"gestion de projet", "pilotage", "coordination", "priorisation", "cadrage"},
+    "Anglais professionnel": {"anglais", "english", "international", "documentation anglaise"},
 }
 
-TOOL_SKILLS = {"Airflow", "dbt", "Power BI", "Snowflake", "Databricks", "DuckDB"}
-THEORETICAL_SKILLS = {"Modelisation", "Machine Learning"}
+TOOL_SKILLS = {
+    "Airflow",
+    "Azure",
+    "dbt",
+    "Docker",
+    "Excel",
+    "FastAPI",
+    "Hadoop",
+    "Power BI",
+    "SAS",
+    "Snowflake",
+    "Streamlit",
+    "Databricks",
+    "DuckDB",
+}
+THEORETICAL_SKILLS = {"Deep Learning", "Modelisation", "Machine Learning"}
+PRACTICAL_PROJECT_SKILLS = {"Docker", "FastAPI", "Streamlit"}
+SOFT_SKILLS = {
+    "Communication",
+    "Vulgarisation",
+    "Collaboration",
+    "Autonomie",
+    "Rigueur",
+    "Problem solving",
+    "Gestion de projet",
+    "Anglais professionnel",
+}

@@ -33,7 +33,11 @@ export function addCandidateDocument(input: unknown): AddCandidateDocumentResult
     sourceFilename: parsed.data.source_filename,
     contentText: parsed.data.content_text,
     parsedJson: {
-      ...analyzeCandidateDocument(parsed.data.content_text),
+      ...analyzeCandidateDocument(parsed.data.content_text, {
+        documentType: parsed.data.document_type,
+        sourceFilename: parsed.data.source_filename,
+        extractionMethod: parsed.data.extraction_method ?? "manual_text"
+      }),
       import_mode: parsed.data.import_mode ?? "text",
       source_mime_type: parsed.data.source_mime_type,
       extraction_method: parsed.data.extraction_method ?? "manual_text",

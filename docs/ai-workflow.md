@@ -48,6 +48,46 @@ Dans le cadre de `Actu Emploi`, cela permet de construire un produit qui identif
 
 L'idee d'operer un agent sur ce produit va dans le meme sens : analyser de facon plus consistente le CV, la lettre et les offres pour mieux faire remonter les competences attendues, les technologies visibles sur le marche et les points de progression les plus utiles.
 
+## Pipeline agentique d'analyse CV/offres
+
+La prochaine brique d'IA du projet est pensee comme un pipeline compose de petits agents specialises, rapides et remplacables.
+
+Objectif :
+
+- analyser separement le profil candidat et l'offre
+- produire un format commun de competences et de preuves
+- confronter les deux analyses avec une sortie explicable
+- distinguer ce qui est acquis, ce qui demande un simple survol, ce qui demande une formation courte et ce qui merite un mini projet
+
+Premiere version locale :
+
+- `skill-detector` detecte les competences visibles dans les documents candidat
+- `requirement-classifier` detecte les competences demandees par une offre
+- `gap-classifier` classe chaque ecart en `acquis`, `survol`, `formation` ou `mini_projet`
+- `mini-project-generator` transforme les manques les plus pratiques en actions concretes
+
+Cette premiere version garde une baseline deterministe et peut enrichir certains agents avec un petit LLM local.
+Le contrat de sortie est volontairement stable pour remplacer ou ajuster un agent sans changer le scoring ni l'interface.
+
+L'implementation MVP est decrite dans [MVP agentique controle](agentic-mvp.md).
+
+Les corrections humaines font partie du flux :
+
+- une competence detectee sur un CV ou une lettre peut etre retiree si l'agent s'est trompe
+- une competence absente peut etre ajoutee sur le document concerne
+- ces corrections sont conservees comme overrides manuels et reutilisees par le profil consolide
+- les soft skills sont traitees comme des signaux explicites quand elles sont visibles ou corrigees par l'utilisateur
+
+Le projet n'utilise pas LangGraph pour l'instant. L'orchestration est volontairement locale et explicite afin de garder les taches, traces, validations et fallbacks faciles a comprendre.
+
+La logique importante n'est donc pas "un gros LLM qui juge tout", mais une chaine d'analyses courtes :
+
+1. lecture du profil
+2. lecture de l'offre
+3. confrontation des competences
+4. estimation de l'effort d'apprentissage
+5. proposition d'action ou de mini projet
+
 ## Ou reste mon jugement humain
 
 L'IA propose.

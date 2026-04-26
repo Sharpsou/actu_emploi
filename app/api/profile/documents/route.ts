@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { refreshAgenticMatchesForExistingJobs } from "@/src/services/agents/refresh-agentic-matches";
 import { addCandidateDocument } from "@/src/services/profile/add-candidate-document";
+import { purgeCandidateDocumentData } from "@/src/services/profile/purge-candidate-document-data";
 import { readCandidateDocumentFormData } from "@/src/services/profile/read-candidate-document-input";
 
 export async function POST(request: NextRequest) {
@@ -35,5 +37,17 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return NextResponse.json(result.value, { status: 201 });
+  const agenticRefresh = refreshAgenticMatchesForExistingJobs();
+
+  return NextResponse.json(
+    {
+      ...result.value,
+      agenticRefresh
+    },
+    { status: 201 }
+  );
+}
+
+export function DELETE() {
+  return NextResponse.json(purgeCandidateDocumentData());
 }

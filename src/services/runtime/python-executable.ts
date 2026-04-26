@@ -33,3 +33,17 @@ export function getPythonCandidates() {
     return fs.existsSync(candidate);
   });
 }
+
+function toWindowedPythonExecutable(executable: string) {
+  const parsed = path.parse(executable);
+  if (parsed.base.toLowerCase() !== "python.exe") {
+    return executable;
+  }
+
+  const candidate = path.join(parsed.dir, "pythonw.exe");
+  return fs.existsSync(candidate) ? candidate : executable;
+}
+
+export function getWindowedPythonCandidates() {
+  return getPythonCandidates().map(toWindowedPythonExecutable);
+}

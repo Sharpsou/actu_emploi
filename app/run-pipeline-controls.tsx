@@ -43,6 +43,7 @@ export function RunPipelineControls({ usesFixtures }: RunPipelineControlsProps) 
   const didAutoRefresh = useRef(false);
   const handledFinalTaskId = useRef<string | null>(null);
   const [activeTask, setActiveTask] = useState<RuntimeTask | null>(null);
+  const [progressOpen, setProgressOpen] = useState(false);
   const [status, setStatus] = useState<string>("Rafraichissement initial des offres au chargement...");
   const [refreshSubmitting, setRefreshSubmitting] = useState(false);
 
@@ -113,6 +114,7 @@ export function RunPipelineControls({ usesFixtures }: RunPipelineControlsProps) 
     }
 
     setRefreshSubmitting(true);
+    setProgressOpen(true);
     setStatus("Rafraichissement des offres en cours...");
 
     try {
@@ -165,8 +167,8 @@ export function RunPipelineControls({ usesFixtures }: RunPipelineControlsProps) 
       </div>
       <span className="muted">
         {usesFixtures
-          ? "Le rafraichissement auto recharge les offres/fixtures et applique seulement le filtrage heuristique."
-          : "Le rafraichissement auto recharge les offres France Travail et applique seulement le filtrage par mots-cles."}
+          ? "Le rafraichissement auto recharge les offres/fixtures, applique l'analyse agentique baseline, puis recalcule le scoring."
+          : "Le rafraichissement auto recharge les offres France Travail, applique l'analyse agentique baseline, puis recalcule le scoring."}
       </span>
       <p className="muted">{status}</p>
       {activeTask ? (
@@ -178,6 +180,47 @@ export function RunPipelineControls({ usesFixtures }: RunPipelineControlsProps) 
               <li key={`${activeTask.id}-${index}`}>{entry}</li>
             ))}
           </ul>
+        </div>
+      ) : null}
+      {progressOpen ? (
+        <div aria-modal="true" className="analysis-modal-backdrop" role="dialog">
+          <div className="analysis-modal section-stack">
+            <div className="row-between">
+              <div>
+                <span className="eyebrow">Pipeline quotidien</span>
+                <h2>Avancee de l&apos;analyse</h2>
+              </div>
+              <button className="button-secondary" onClick={() => setProgressOpen(false)} type="button">
+                Fermer
+              </button>
+            </div>
+            <div className="task-log">
+              <strong>{activeTask?.title ?? "Rafraichissement des offres"}</strong>
+              <p className="muted">
+                Etat: {activeTask?.status ?? "initialisation"} -{" "}
+                {activeTask?.currentStep ?? "Preparation de la tache..."}
+              </p>
+              <p>{status}</p>
+              <ul className="metric-list">
+                {(activeTask?.logs.length
+                  ? activeTask.logs
+                  : ["Preparation de la collecte et de l'analyse agentique..."]
+                ).map((entry, index) => (
+                    <li key={`${activeTask?.id ?? "pending"}-${index}`}>{entry}</li>
+                  ))}
+              </ul>
+            </div>
+            {activeTask?.result?.stats ? (
+              <div className="pill-row">
+                {typeof activeTask.result.stats.raw_jobs === "number" ? (
+                  <span className="pill">{activeTask.result.stats.raw_jobs} offres brutes</span>
+                ) : null}
+                {typeof activeTask.result.stats.filtered_jobs === "number" ? (
+                  <span className="pill">{activeTask.result.stats.filtered_jobs} retenues</span>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </div>
