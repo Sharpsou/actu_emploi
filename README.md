@@ -66,6 +66,26 @@ npm run llm:stop
 
 Le petit LLM local via Ollama est optionnel. La baseline deterministe reste disponible quand `LIGHTWEIGHT_LLM_ENABLED=0`.
 
+## Prise en main avec l'IA
+
+Le projet est aussi un terrain de pratique pour travailler avec un assistant de code IA.
+
+Pour reprendre le repo avec l'outil :
+
+- commencer par lire ce README, puis `docs/guide-reprise-projet.md` si disponible
+- cadrer la demande avec un objectif court : bug a isoler, feature a ajouter, doc a nettoyer
+- demander a l'IA de lire les fichiers concernes avant de modifier
+- verifier le diff, les tests utiles et le comportement local avant de pousser
+
+Les skills locaux dans `.agents/skills/` donnent le cadre de travail du projet :
+
+- `project-conventions` : conventions de code et priorites MVP
+- `debug-playbook` : methode pour isoler un bug
+- `render-runbook` : contraintes de deploiement Render
+- `agentic-architecture` : pipeline IA controle pour CV, offres et scoring
+
+L'IA sert ici d'accelerateur de conception, de debug et d'execution. Les choix produit, les arbitrages techniques et la validation finale restent humains.
+
 ## Documentation
 
 - [Cadrage produit](docs/cadrage-produit.md)
