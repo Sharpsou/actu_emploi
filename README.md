@@ -190,3 +190,7 @@ Notes techniques utiles :
 - les appels externes utilisent un cache disque local pour eviter de repeter inutilement les memes requetes
 - ils ont un plafond strict de requetes par source et par run, en plus d'un delai entre deux appels reseau
 - ils sont plus fragiles que des APIs officielles et peuvent casser si le HTML ou le balisage schema.org change
+
+## Licence
+
+Ce projet est open source sous licence MIT. Voir [LICENSE](LICENSE).
